@@ -6,6 +6,7 @@ import (
 
 func cleanInput(text string) []string {
 	trimmed := strings.Trim(text, " ")
-	result := strings.Split(trimmed, " ")
+	lowered := strings.ToLower(trimmed)
+	result := strings.Fields(lowered)
 	return result
 }

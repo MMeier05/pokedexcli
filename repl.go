@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"os"
 )
+type config struct{
+	commands map[string]cliCommand
+}
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 } 
 
 func cleanInput(text string) []string {
@@ -20,22 +23,8 @@ func cleanInput(text string) []string {
 	return result
 }
 
-func getCommands() map[string]cliCommand {
-	return map[string]cliCommand{
-		"exit": {
-			name:	"exit",
-			description: "Exit the Pokedex",
-			callback: commandExit,
-		},
-		"help": {
-			name: "help",
-			description: "Displays a help message",
-			callback: commandHelp,
-		},
-	}
-}
 
-func startRepl() {
+func startRepl(conf *config) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for i := 0; ; i++ {
 		fmt.Print("Pokedex > ")
@@ -46,11 +35,11 @@ func startRepl() {
 		}
 		rawInput := scanner.Text()
 		cleanInput := cleanInput(rawInput)
-		cmd, ok := getCommands()[cleanInput[0]]
+		cmd, ok := conf.commands[cleanInput[0]]
 		if !ok {
 			fmt.Print("Unknown command")
 		} else {
-			err := cmd.callback()
+			err := cmd.callback(conf)
 			if err != nil {
 				fmt.Printf("Error: %v", err)
 			}
@@ -59,15 +48,15 @@ func startRepl() {
 }
 
 //-----COMMANDS-----
-func commandExit() error {
+func commandExit(conf *config) error {
 	fmt.Print("Closing the Pokedex... Goodbye!\n")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(conf *config) error {
 	usageString := "Welcome to the Pokedex!\nUsage:\n\n"
-	replCommands := getCommands()
+	replCommands := conf.commands
 	for cmd := range replCommands {
 		commandRepr := fmt.Sprintf("%s: %s\n", replCommands[cmd].name, replCommands[cmd].description)
 		usageString += commandRepr

@@ -5,9 +5,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"io"
+	"net/http"
+	"encoding/json"
 )
 type config struct{
 	commands map[string]cliCommand
+	areaNext string
+	areaPrev any 
 }
 
 type cliCommand struct {
@@ -16,6 +21,15 @@ type cliCommand struct {
 	callback    func(*config) error
 } 
 
+type AreaData struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous any    `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} 
+}
 func cleanInput(text string) []string {
 	trimmed := strings.Trim(text, " ")
 	lowered := strings.ToLower(trimmed)
@@ -63,5 +77,52 @@ func commandHelp(conf *config) error {
 	}
 	fmt.Print(usageString)
 	return nil
+}
+func AreaGet(url string) (AreaData, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return AreaData{}, err
+	}
+	defer res.Body.Close()
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return AreaData{}, err
+	}
+	areaDat := AreaData{}
+	if err = json.Unmarshal(data, &areaDat); err != nil {
+		return AreaData{}, err 
+	}
+	return areaDat, nil
 
+}
+
+func commandMap(conf *config) error {
+	areaDat, err := AreaGet(conf.areaNext)
+	if err != nil {
+		return err
+	}
+	conf.areaNext = areaDat.Next
+	conf.areaPrev = areaDat.Previous
+	for _, name := range areaDat.Results {
+		fmt.Printf("%s\n", name.Name)
+	}
+	return nil
+}
+
+func commandMapb(conf *config) error {
+	prev, ok := conf.areaPrev.(string)
+	if !ok {
+		fmt.Printf("you're on the first page\n")
+		return nil
+	}
+	areaDat, err := AreaGet(prev)
+	if err != nil {
+		return err
+	}
+	conf.areaNext = areaDat.Next
+	conf.areaPrev = areaDat.Previous
+	for _, name := range areaDat.Results {
+		fmt.Printf("%s\n", name.Name)
+	}
+	return nil
 }

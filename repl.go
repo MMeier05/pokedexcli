@@ -8,11 +8,13 @@ import (
 	"io"
 	"net/http"
 	"encoding/json"
+	"github.com/MMeier05/pokedexcli/internal"
 )
 type config struct{
 	commands map[string]cliCommand
 	areaNext string
 	areaPrev any 
+	cache *pokecache.Cache
 }
 
 type cliCommand struct {
@@ -62,6 +64,20 @@ func startRepl(conf *config) {
 }
 
 //-----COMMANDS-----
+func helperAreaGet(url string) ([]byte, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+
+}
+
 func commandExit(conf *config) error {
 	fmt.Print("Closing the Pokedex... Goodbye!\n")
 	os.Exit(0)
@@ -78,28 +94,21 @@ func commandHelp(conf *config) error {
 	fmt.Print(usageString)
 	return nil
 }
-func AreaGet(url string) (AreaData, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return AreaData{}, err
-	}
-	defer res.Body.Close()
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return AreaData{}, err
-	}
-	areaDat := AreaData{}
-	if err = json.Unmarshal(data, &areaDat); err != nil {
-		return AreaData{}, err 
-	}
-	return areaDat, nil
-
-}
 
 func commandMap(conf *config) error {
-	areaDat, err := AreaGet(conf.areaNext)
-	if err != nil {
-		return err
+	var data []byte
+	data, ok := conf.cache.Get(conf.areaNext)
+	if !ok {
+		var err error
+		data, err = helperAreaGet(conf.areaNext)
+		if err != nil {
+			return err
+		}
+		conf.cache.Add(conf.areaNext, data)
+	}
+	areaDat := AreaData{}
+	if err := json.Unmarshal(data, &areaDat); err != nil {
+		return  err 
 	}
 	conf.areaNext = areaDat.Next
 	conf.areaPrev = areaDat.Previous
@@ -115,9 +124,19 @@ func commandMapb(conf *config) error {
 		fmt.Printf("you're on the first page\n")
 		return nil
 	}
-	areaDat, err := AreaGet(prev)
-	if err != nil {
-		return err
+	var data []byte
+	data, ok = conf.cache.Get(prev)
+	if !ok {
+		var err error
+		data, err = helperAreaGet(prev)
+		if err != nil {
+			return err
+		}
+		conf.cache.Add(prev, data)
+	}
+	areaDat := AreaData{}
+	if err := json.Unmarshal(data, &areaDat); err != nil {
+		return  err 
 	}
 	conf.areaNext = areaDat.Next
 	conf.areaPrev = areaDat.Previous

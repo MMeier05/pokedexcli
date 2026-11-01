@@ -1,6 +1,11 @@
 package main
 
+import (
+	"time"
+	"github.com/MMeier05/pokedexcli/internal"
+)
 func main() {
+	c := pokecache.NewCache(6 * time.Second)
 	conf := config{
 		commands: map[string]cliCommand{
 				"exit": {
@@ -26,8 +31,8 @@ func main() {
 			},
 		areaNext: "https://pokeapi.co/api/v2/location-area/",
 		areaPrev: nil,
+		cache: c,
 		}
-
 	startRepl(&conf)
 }
 

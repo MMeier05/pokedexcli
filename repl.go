@@ -17,18 +17,9 @@ type config struct{
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, string) error
 } 
 
-type AreaData struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous any    `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} 
-}
 func cleanInput(text string) []string {
 	trimmed := strings.Trim(text, " ")
 	lowered := strings.ToLower(trimmed)
@@ -50,11 +41,20 @@ func startRepl(conf *config) {
 		cleanInput := cleanInput(rawInput)
 		cmd, ok := conf.commands[cleanInput[0]]
 		if !ok {
-			fmt.Print("Unknown command")
+			fmt.Print("Unknown command\n")
 		} else {
-			err := cmd.callback(conf)
-			if err != nil {
-				fmt.Printf("Error: %v", err)
+			// Commands with arg handeled here
+			if len(cleanInput) == 2 {
+				err := cmd.callback(conf, cleanInput[1])
+				if err != nil {
+					fmt.Printf("Error: %v", err)
+				}
+			} else {
+				// Commands without arg handeled here
+				err := cmd.callback(conf, "")
+				if err != nil {
+					fmt.Printf("Error: %v", err)
+				}
 			}
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func commandHelp(conf *config) error {
+func commandHelp(conf *config, _ string) error {
 	usageString := "Welcome to the Pokedex!\nUsage:\n\n"
 	replCommands := conf.commands
 	for cmd := range replCommands {

@@ -7,6 +7,16 @@ import (
 	"fmt"
 )
 
+type AreaData struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous any    `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} 
+}
+
 func helperAreaGet(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
@@ -21,7 +31,7 @@ func helperAreaGet(url string) ([]byte, error) {
 
 }
 
-func commandMap(conf *config) error {
+func commandMap(conf *config, _ string) error {
 	var data []byte
 	data, ok := conf.cache.Get(conf.areaNext)
 	if !ok {
@@ -44,7 +54,7 @@ func commandMap(conf *config) error {
 	return nil
 }
 
-func commandMapb(conf *config) error {
+func commandMapb(conf *config, _ string) error {
 	prev, ok := conf.areaPrev.(string)
 	if !ok {
 		fmt.Printf("you're on the first page\n")

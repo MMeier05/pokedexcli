@@ -42,6 +42,11 @@ func main() {
 				description: "Display details about the Pokemon",
 				callback: commandInspect,
 			},
+			"pokedex": {
+				name: "pokedex",
+				description: "Display all Pokemon you have caught",
+				callback: commandPokedex,
+			},
 		},
 		areaNext: "https://pokeapi.co/api/v2/location-area/",
 		areaPrev: nil,

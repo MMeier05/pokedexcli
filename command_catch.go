@@ -18,6 +18,7 @@ func commandCatch(conf *config, pokemonName string) error {
 	fmt.Printf("Throwing a Pokeball at %s...\n", data.Name) 
 	if randInt == 0 {
 		fmt.Printf("%s was caught!\n", data.Name)
+		fmt.Printf("You may now inspect it with the inspect command.\n")
 		conf.pokedex[data.Name] = data
 		return nil
 	}

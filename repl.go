@@ -5,13 +5,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"github.com/MMeier05/pokedexcli/internal"
+	"github.com/MMeier05/pokedexcli/internal/pokeapi"
 )
 type config struct{
 	commands map[string]cliCommand
 	areaNext string
 	areaPrev any 
-	cache *pokecache.Cache
+	pokeapiClient pokeapi.Client
+	pokedex map[string]pokeapi.PokemonData
 }
 
 type cliCommand struct {
@@ -26,7 +27,6 @@ func cleanInput(text string) []string {
 	result := strings.Fields(lowered)
 	return result
 }
-
 
 func startRepl(conf *config) {
 	scanner := bufio.NewScanner(os.Stdin)

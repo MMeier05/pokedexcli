@@ -2,10 +2,9 @@ package main
 
 import (
 	"time"
-	"github.com/MMeier05/pokedexcli/internal"
+	"github.com/MMeier05/pokedexcli/internal/pokeapi"
 )
 func main() {
-	c := pokecache.NewCache(6 * time.Second)
 	conf := config{
 		commands: map[string]cliCommand{
 			"exit": {
@@ -33,11 +32,22 @@ func main() {
 				description: "Display the Pokemon found in the specified area",
 				callback: commandExplore,
 			},
+			"catch": {
+				name: "catch",
+				description: "Catch a Pokemon",
+				callback: commandCatch,
+			},
+			"inspect": {
+				name: "inspect",
+				description: "Display details about the Pokemon",
+				callback: commandInspect,
+			},
 		},
 		areaNext: "https://pokeapi.co/api/v2/location-area/",
 		areaPrev: nil,
-		cache: c,
-		}
+		pokeapiClient: pokeapi.NewClient(6 * time.Second),
+		pokedex: map[string]pokeapi.PokemonData{},
+	}
 	startRepl(&conf)
 }
 
